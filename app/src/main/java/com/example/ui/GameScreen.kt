@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -86,6 +87,38 @@ fun RoyalMascot(
 
     val jumpY = if (isHappy) -breatheY * 2f else breatheY
 
+    val density = LocalDensity.current
+    val crownPath = remember(density) {
+        val sizePx = with(density) { 72.dp.toPx() }
+        val center = Offset(sizePx / 2, sizePx / 2)
+        Path().apply {
+            moveTo(center.x - 22f, center.y - 12f)
+            lineTo(center.x - 28f, center.y - 36f)
+            lineTo(center.x - 10f, center.y - 20f)
+            lineTo(center.x, center.y - 42f)
+            lineTo(center.x + 10f, center.y - 20f)
+            lineTo(center.x + 28f, center.y - 36f)
+            lineTo(center.x + 22f, center.y - 12f)
+            close()
+        }
+    }
+    val mouthPath = remember(density) {
+        val sizePx = with(density) { 72.dp.toPx() }
+        val center = Offset(sizePx / 2, sizePx / 2)
+        Path().apply {
+            moveTo(center.x - 7f, center.y + 6f)
+            quadraticBezierTo(center.x, center.y + 14f, center.x + 7f, center.y + 6f)
+        }
+    }
+    val happyMouthPath = remember(density) {
+        val sizePx = with(density) { 72.dp.toPx() }
+        val center = Offset(sizePx / 2, sizePx / 2)
+        Path().apply {
+            moveTo(center.x - 5f, center.y + 8f)
+            quadraticBezierTo(center.x, center.y + 10f, center.x + 5f, center.y + 8f)
+        }
+    }
+
     Canvas(modifier = modifier.size(72.dp)) {
         val center = size.center
 
@@ -104,16 +137,6 @@ fun RoyalMascot(
             drawCircle(color = Color(0xFFFFD180), radius = 24f, center = Offset(center.x, center.y - 2f))
 
             // Draw Crown
-            val crownPath = Path().apply {
-                moveTo(center.x - 22f, center.y - 12f)
-                lineTo(center.x - 28f, center.y - 36f)
-                lineTo(center.x - 10f, center.y - 20f)
-                lineTo(center.x, center.y - 42f)
-                lineTo(center.x + 10f, center.y - 20f)
-                lineTo(center.x + 28f, center.y - 36f)
-                lineTo(center.x + 22f, center.y - 12f)
-                close()
-            }
             drawPath(crownPath, color = Color(0xFFFFD700)) // Gold Crown
             // Crown jewels
             drawCircle(color = Color.Red, radius = 3.5f, center = Offset(center.x - 28f, center.y - 36f))
@@ -130,19 +153,14 @@ fun RoyalMascot(
             drawCircle(color = Color.Black, radius = eyeRadius, center = Offset(center.x + 8f, center.y - 4f + eyeOffsetY))
 
             // Mouth
-            val mouthPath = Path()
             if (isPanic) {
                 drawCircle(color = Color.Black, radius = 4.5f, center = Offset(center.x, center.y + 8f))
             } else if (isHappy) {
-                mouthPath.moveTo(center.x - 7f, center.y + 6f)
-                mouthPath.quadraticBezierTo(center.x, center.y + 14f, center.x + 7f, center.y + 6f)
                 drawPath(mouthPath, color = Color.Black, style = Stroke(width = 3f, cap = StrokeCap.Round))
                 // Tongue
                 drawCircle(color = Color.Red.copy(alpha=0.8f), radius = 2.5f, center = Offset(center.x, center.y + 10f))
             } else {
-                mouthPath.moveTo(center.x - 5f, center.y + 8f)
-                mouthPath.quadraticBezierTo(center.x, center.y + 10f, center.x + 5f, center.y + 8f)
-                drawPath(mouthPath, color = Color.Black, style = Stroke(width = 2f, cap = StrokeCap.Round))
+                drawPath(happyMouthPath, color = Color.Black, style = Stroke(width = 2f, cap = StrokeCap.Round))
             }
 
             // Flush / Cheeks
@@ -440,7 +458,9 @@ fun GameScreen(
 
                         // Sparkles / floating combo animations overlay
                         state.floatingScores.forEach { float ->
-                            AnimateFloatingScores(float)
+                            key(float.id) {
+                                AnimateFloatingScores(float)
+                            }
                         }
                     }
                 }

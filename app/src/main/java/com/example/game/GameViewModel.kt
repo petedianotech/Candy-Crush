@@ -74,7 +74,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun selectNextLevel(currentLevelId: Int) {
         viewModelScope.launch {
             val nextLevel = repository.getLevelById(currentLevelId + 1)
-            if (nextLevel != null && nextLevel.isUnlocked) {
+            if (nextLevel != null) {
                 selectLevel(nextLevel)
             } else {
                 goBackToLevelSelect()
