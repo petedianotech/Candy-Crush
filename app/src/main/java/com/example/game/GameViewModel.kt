@@ -221,6 +221,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private fun usePowerUpOnCell(r: Int, c: Int) {
         val state = _uiState.value as? GameUiState.Playing ?: return
         val powerUp = state.activePowerUp ?: return
+        
+        _uiState.value = state.copy(isAnimating = true, selectedCell = null, activePowerUp = null)
+        
         val board = state.board
         
         val hasStock = when (powerUp) {
@@ -239,9 +242,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
         
+        _uiState.value = state.copy(isAnimating = true, selectedCell = null, activePowerUp = null)
         viewModelScope.launch {
-            _uiState.value = state.copy(isAnimating = true, selectedCell = null, activePowerUp = null)
-            
             val nextStripeCount = if (powerUp == PowerUpType.STRIPE_HAMMER) state.stripeHammerCount - 1 else state.stripeHammerCount
             val nextRainbowCount = if (powerUp == PowerUpType.RAINBOW_BRUSH) state.rainbowBrushCount - 1 else state.rainbowBrushCount
             val nextSmasherCount = if (powerUp == PowerUpType.CHOCO_SMASHER) state.chocoSmasherCount - 1 else state.chocoSmasherCount
@@ -310,13 +312,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun swapAndMatch(r1: Int, c1: Int, r2: Int, c2: Int) {
-        viewModelScope.launch {
-            val state = _uiState.value as? GameUiState.Playing ?: return@launch
-            _uiState.value = state.copy(isAnimating = true, selectedCell = null)
+        val state = _uiState.value as? GameUiState.Playing ?: return
+        _uiState.value = state.copy(isAnimating = true, selectedCell = null)
 
+        viewModelScope.launch {
             // Perform visual swap animation locally
             var currentBoard = swapCandiesOnBoard(state.board, r1, c1, r2, c2)
-            _uiState.value = state.copy(board = currentBoard)
+            _uiState.value = state.copy(board = currentBoard, isAnimating = true, selectedCell = null)
             delay(200L)
 
             // Detect matches on swap
@@ -644,8 +646,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     other != group && other.cells.intersect(group.cells).isNotEmpty()
                 }
                 if (isIntersecting) {
-                    val intersection = matches[0].cells.intersect(matches[0].cells).firstOrNull() ?: group.cells.first()
-                    specialSpawnReservations[intersection] = SpecialType.WRAPPED
+                    val intersectionPair = group.cells.intersect(matches.find { it != group && it.cells.intersect(group.cells).isNotEmpty() }?.cells ?: emptySet()).firstOrNull() ?: group.cells.first()
+                    specialSpawnReservations[intersectionPair] = SpecialType.WRAPPED
                 }
             }
         }

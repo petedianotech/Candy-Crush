@@ -34,6 +34,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.SolidColor
 import com.example.game.PowerUpType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.shape.CircleShape
 
 import kotlin.math.cos
 import kotlin.math.sin
@@ -93,7 +95,7 @@ fun RenderCandy3D(
 
         val boardWidth = size.width
         val boardHeight = size.height
-        val candyRadius = (boardWidth.coerceAtMost(boardHeight) / 2f)
+        val candyRadius = (boardWidth.coerceAtMost(boardHeight) / 2f).coerceAtLeast(1f)
 
         val center = size.center
 
@@ -127,7 +129,7 @@ fun RenderCandy3D(
                 brush = Brush.radialGradient(
                     colors = listOf(Color.White.copy(alpha = 0.65f), Color.White.copy(alpha = 0.1f), Color.Transparent),
                     center = center - Offset(candyRadius * 0.1f, candyRadius * 0.1f),
-                    radius = candyRadius * 0.45f
+                    radius = (candyRadius * 0.45f).coerceAtLeast(1f)
                 ),
                 radius = candyRadius * 0.45f,
                 center = center,
@@ -139,7 +141,7 @@ fun RenderCandy3D(
                 brush = Brush.radialGradient(
                     colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.15f), Color.White.copy(alpha = 0.32f)),
                     center = center,
-                    radius = candyRadius
+                    radius = candyRadius.coerceAtLeast(1f)
                 ),
                 radius = candyRadius,
                 center = center
@@ -670,7 +672,8 @@ private fun StarMilestoneIndicator(achieved: Boolean) {
             .background(
                 brush = Brush.radialGradient(
                     colors = if (achieved) listOf(Color(0xFFFFF9C4), Color(0xFFFBC02D))
-                    else listOf(Color(0xFFECEFF1), Color(0xFFCFD8DC))
+                    else listOf(Color(0xFFECEFF1), Color(0xFFCFD8DC)),
+                    radius = (with(LocalDensity.current) { 12.dp.toPx() }).coerceAtLeast(1f)
                 ),
                 shape = RoundedCornerShape(12.dp)
             ),
@@ -730,11 +733,16 @@ fun HDMovingMeshBackground(modifier: Modifier = Modifier) {
     )
 
     Canvas(modifier = modifier.fillMaxSize()) {
+        val width = size.width
+        val height = size.height
+        if (width <= 0f || height <= 0f) return@Canvas
+
         // Deep twilight purple backdrop
         drawRect(Color(0xFF0C0416))
 
         // Moving Mesh Red-Sunset Glowing node
-        val center1 = Offset(size.width * shiftX1, size.height * shiftY1)
+        val center1 = Offset(width * shiftX1, height * shiftY1)
+        val radius1 = (width * 0.95f).coerceAtLeast(1f)
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
@@ -743,14 +751,15 @@ fun HDMovingMeshBackground(modifier: Modifier = Modifier) {
                     Color.Transparent
                 ),
                 center = center1,
-                radius = size.width * 0.95f
+                radius = radius1
             ),
-            radius = size.width * 0.95f,
+            radius = radius1,
             center = center1
         )
 
         // Shifting Electric Cyan node
-        val center2 = Offset(size.width * shiftX2, size.height * shiftY2)
+        val center2 = Offset(width * shiftX2, height * shiftY2)
+        val radius2 = (width * 1.1f).coerceAtLeast(1f)
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
@@ -759,9 +768,9 @@ fun HDMovingMeshBackground(modifier: Modifier = Modifier) {
                     Color.Transparent
                 ),
                 center = center2,
-                radius = size.width * 1.1f
+                radius = radius2
             ),
-            radius = size.width * 1.1f,
+            radius = radius2,
             center = center2
         )
 
@@ -842,11 +851,11 @@ fun PowerUpReflectiveDock(
                 verticalAlignment = Alignment.Top
             ) {
                 // Faded reflections mirroring docks
-                Box(modifier = Modifier.size(36.dp).background(Brush.radialGradient(colors = listOf(Color(0xFFFF2A85).copy(alpha = 0.22f), Color.Transparent)), RoundedCornerShape(18.dp)))
+                Box(modifier = Modifier.size(36.dp).background(Brush.radialGradient(colors = listOf(Color(0xFFFF2A85).copy(alpha = 0.22f), Color.Transparent), radius = (with(LocalDensity.current) { 18.dp.toPx() }).coerceAtLeast(1f)), CircleShape))
                 Spacer(modifier = Modifier.width(42.dp))
-                Box(modifier = Modifier.size(36.dp).background(Brush.radialGradient(colors = listOf(Color(0xFF00E5FF).copy(alpha = 0.22f), Color.Transparent)), RoundedCornerShape(18.dp)))
+                Box(modifier = Modifier.size(36.dp).background(Brush.radialGradient(colors = listOf(Color(0xFF00E5FF).copy(alpha = 0.22f), Color.Transparent), radius = (with(LocalDensity.current) { 18.dp.toPx() }).coerceAtLeast(1f)), CircleShape))
                 Spacer(modifier = Modifier.width(42.dp))
-                Box(modifier = Modifier.size(36.dp).background(Brush.radialGradient(colors = listOf(Color(0xFFFFEE58).copy(alpha = 0.22f), Color.Transparent)), RoundedCornerShape(18.dp)))
+                Box(modifier = Modifier.size(36.dp).background(Brush.radialGradient(colors = listOf(Color(0xFFFFEE58).copy(alpha = 0.22f), Color.Transparent), radius = (with(LocalDensity.current) { 18.dp.toPx() }).coerceAtLeast(1f)), CircleShape))
             }
         }
     }
@@ -898,7 +907,7 @@ fun PowerUpItemWidget(
                         brush = Brush.radialGradient(
                             colors = listOf(Color(0xFFE040FB), Color(0xFF6A1B9A)),
                             center = center,
-                            radius = radius
+                            radius = radius.coerceAtLeast(1f)
                         ),
                         radius = radius,
                         center = center
@@ -923,7 +932,7 @@ fun PowerUpItemWidget(
                         brush = Brush.radialGradient(
                             colors = listOf(Color(0xFFFFE082), Color(0xFFE65100)),
                             center = center,
-                            radius = radius
+                            radius = radius.coerceAtLeast(1f)
                         ),
                         radius = radius,
                         center = center
