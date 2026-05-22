@@ -1,0 +1,6 @@
+{
+  "name": "Candy Match 3D",
+  "description": "An immersive match-3 candy puzzle game with gorgeous 3D-like visual rendering, 20 unique levels of increasing difficulty, sweet visual particle explosions, and level-saving persistence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

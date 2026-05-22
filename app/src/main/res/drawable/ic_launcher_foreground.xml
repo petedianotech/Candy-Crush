@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Subtle Drop Shadow of the candy -->
+    <path
+        android:fillColor="#40000000"
+        android:pathData="M 54,88 C 72.7,88 88,72.7 88,54 C 88,48 83,50 54,50 C 25,50 20,48 20,54 C 20,72.7 35.3,88 54,88 Z" />
+
+    <!-- Main Candy Sphere Body -->
+    <path
+        android:pathData="M 54,84 C 70.5,84 84,70.5 84,54 C 84,37.5 70.5,24 54,24 C 37.5,24 24,37.5 24,54 C 24,70.5 37.5,84 54,84 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="44"
+                android:centerY="44"
+                android:gradientRadius="48"
+                android:type="radial">
+                <item android:offset="0.0" android:color="#FF7043" />
+                <item android:offset="0.6" android:color="#E64A19" />
+                <item android:offset="1.0" android:color="#BF360C" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Translucent Bevel / Glass Highlight Arc -->
+    <path
+        android:pathData="M 34,44 C 34,38 40,32 50,32 C 52,32 52,28 50,28 C 36,28 28,36 28,50 C 28,52 32,52 32,50 C 32,48 34,46 34,44 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="28"
+                android:startY="28"
+                android:endX="52"
+                android:endY="52"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFFFFFFF" />
+                <item android:offset="1.0" android:color="#00FFFFFF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Specular highlight dot (3D gloss sparkle) -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M 46,38 C 48.2,38 50,36.2 50,34 C 50,31.8 48.2,30 46,30 C 43.8,30 42,31.8 42,34 C 42,36.2 43.8,38 46,38 Z" />
+
+    <!-- Cute wrapping ribbon overlays around the launcher icon -->
+    <path
+        android:fillColor="#E1BEE7"
+        android:pathData="M 24,54 L 14,48 L 14,60 Z" />
+    <path
+        android:fillColor="#E1BEE7"
+        android:pathData="M 84,54 L 94,48 L 94,60 Z" />
+
+</vector>
