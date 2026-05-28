@@ -52,6 +52,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.translate
 
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.launch
+
 @Composable
 fun RoyalMascot(
     movesLeft: Int,
@@ -201,7 +205,7 @@ fun GameScreen(
         label = "score_pop_bounce"
     )
 
-    // Advanced 360-degree rotating gradient vector offsets and trigonometric calculations for board border cycling
+    // Animation values for board border cycling
     val infiniteRotation = rememberInfiniteTransition(label = "board_border_rotation")
     val rotationAngle by infiniteRotation.animateFloat(
         initialValue = 0f,
@@ -211,18 +215,6 @@ fun GameScreen(
             repeatMode = RepeatMode.Restart
         ),
         label = "border_angle"
-    )
-
-    val cyclingBorderBrush = Brush.linearGradient(
-        colors = listOf(Color(0xFFFF2A85), Color(0xFF00E5FF), Color(0xFFFF2A85)),
-        start = Offset(
-            x = (cos(Math.toRadians(rotationAngle.toDouble())) * 1200).toFloat(),
-            y = (sin(Math.toRadians(rotationAngle.toDouble())) * 1200).toFloat()
-        ),
-        end = Offset(
-            x = (cos(Math.toRadians((rotationAngle + 180).toDouble())) * 1200).toFloat(),
-            y = (sin(Math.toRadians((rotationAngle + 180).toDouble())) * 1200).toFloat()
-        )
     )
 
     Box(
@@ -410,11 +402,27 @@ fun GameScreen(
                         .padding(bottom = 6.dp)
                         .shadow(24.dp, RoundedCornerShape(24.dp))
                         .background(Color.White.copy(alpha = 0.08f), RoundedCornerShape(24.dp))
-                        .border(
-                            width = 3.dp,
-                            brush = cyclingBorderBrush,
-                            shape = RoundedCornerShape(24.dp)
-                        )
+                        .drawWithContent {
+                            drawContent()
+                            val angleRad = Math.toRadians(rotationAngle.toDouble())
+                            val cosA = cos(angleRad).toFloat()
+                            val sinA = sin(angleRad).toFloat()
+                            
+                            val startOffset = Offset(cosA * 1200f, sinA * 1200f)
+                            val endOffset = Offset(-cosA * 1200f, -sinA * 1200f)
+                            
+                            val brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFFFF2A85), Color(0xFF00E5FF), Color(0xFFFF2A85)),
+                                start = startOffset,
+                                end = endOffset
+                            )
+                            
+                            drawRoundRect(
+                                brush = brush,
+                                cornerRadius = CornerRadius(24.dp.toPx()),
+                                style = Stroke(width = 3.dp.toPx())
+                            )
+                        }
                 ) {
                     Box(
                         modifier = Modifier
@@ -456,10 +464,12 @@ fun GameScreen(
                             }
                         }
 
-                        // Sparkles / floating combo animations overlay
-                        state.floatingScores.forEach { float ->
-                            key(float.id) {
-                                AnimateFloatingScores(float)
+                        // High-performance overlay for floating scores and particles
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            state.floatingScores.forEach { float ->
+                                key(float.id) {
+                                    AnimateFloatingScores(float)
+                                }
                             }
                         }
                     }
@@ -574,16 +584,16 @@ fun AnimateFloatingScores(floatScore: com.example.game.FloatingScore) {
 
     // High fidelity particle nodes flying outward using trigonometry offsets
     val particles = remember {
-        List(14) {
+        List(10) { // Reduced count for performance
             val angle = Math.random() * 2 * Math.PI
-            val distance = (40 + Math.random() * 120).toFloat()
+            val distance = (30 + Math.random() * 80).toFloat() // Reduced spread
             val dx = (cos(angle) * distance).toFloat()
-            val dy = (sin(angle) * distance - 80).toFloat() // biased slightly upwards
+            val dy = (sin(angle) * distance - 40).toFloat() 
             val randColor = listOf(
-                Color(0xFFFF2A85), // Electric pink
-                Color(0xFF00E5FF), // Cyber Cyan
-                Color(0xFFFFEE58), // Electric Yellow
-                Color(0xFF7C4DFF)  // Cosmic Purple
+                Color(0xFFFF2A85),
+                Color(0xFF00E5FF),
+                Color(0xFFFFEE58),
+                Color(0xFF7C4DFF)
             ).random()
             Triple(dx, dy, randColor.copy(alpha = 0.9f))
         }
@@ -592,40 +602,44 @@ fun AnimateFloatingScores(floatScore: com.example.game.FloatingScore) {
     val particleProgress = remember { Animatable(0f) }
 
     LaunchedEffect(floatScore.id) {
-        // Animate floating pill up
-        delay(20L)
-        offsetTransition.animateTo(-150f, animationSpec = tween(duration, easing = LinearOutSlowInEasing))
-    }
-    LaunchedEffect(floatScore.id) {
-        delay((duration / 2).toLong())
-        alphaTransition.animateTo(0f, animationSpec = tween(duration / 2, easing = FastOutLinearInEasing))
-    }
-    LaunchedEffect(floatScore.id) {
-        particleProgress.animateTo(1.0f, animationSpec = tween(duration, easing = LinearOutSlowInEasing))
+        // Parallel animations
+        launch {
+            offsetTransition.animateTo(-120f, animationSpec = tween(duration, easing = LinearOutSlowInEasing))
+        }
+        launch {
+            delay((duration / 2).toLong())
+            alphaTransition.animateTo(0f, animationSpec = tween(duration / 2, easing = FastOutLinearInEasing))
+        }
+        launch {
+            particleProgress.animateTo(1.0f, animationSpec = tween(duration, easing = LinearOutSlowInEasing))
+        }
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer {
+                alpha = alphaTransition.value
+            },
         contentAlignment = Alignment.Center
     ) {
-        // Canvas shower radiating particles
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val boardCenter = size.center + Offset(0f, offsetTransition.value)
+        // Particle canvas using static size where possible
+        val density = LocalDensity.current
+        Canvas(modifier = Modifier.size(150.dp)) {
+            val centerPos = size.center + Offset(0f, offsetTransition.value)
             particles.forEach { (dx, dy, color) ->
                 val currentOffset = Offset(
-                    x = boardCenter.x + dx * particleProgress.value,
-                    y = boardCenter.y + dy * particleProgress.value
+                    x = centerPos.x + dx * particleProgress.value,
+                    y = centerPos.y + dy * particleProgress.value
                 )
-                // Glow halo
                 drawCircle(
                     color = color.copy(alpha = color.alpha * (1f - particleProgress.value)),
-                    radius = (5f + 8f * (1f - particleProgress.value)),
+                    radius = (4f + 6f * (1f - particleProgress.value)),
                     center = currentOffset
                 )
-                // White glossy core
                 drawCircle(
-                    color = Color.White.copy(alpha = 0.82f * (1f - particleProgress.value)),
-                    radius = (2f + 3f * (1f - particleProgress.value)),
+                    color = Color.White.copy(alpha = 0.8f * (1f - particleProgress.value)),
+                    radius = (1.5f + 2f * (1f - particleProgress.value)),
                     center = currentOffset
                 )
             }
@@ -634,34 +648,33 @@ fun AnimateFloatingScores(floatScore: com.example.game.FloatingScore) {
         // Frosted Pill Dialog Bubble
         Box(
             modifier = Modifier
-                .offset(y = offsetTransition.value.dp)
-                .alpha(alphaTransition.value)
-                .shadow(12.dp, RoundedCornerShape(12.dp))
+                .graphicsLayer {
+                    translationY = offsetTransition.value
+                }
+                .shadow(8.dp, RoundedCornerShape(12.dp))
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(Color(0xFFFF2A85), Color(0xFF7C4DFF))
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )
-                .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                .padding(horizontal = 14.dp, vertical = 6.dp)
+                .border(1.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 floatScore.message?.let {
                     Text(
                         text = it.uppercase(),
                         color = Color.White,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        style = MaterialTheme.typography.titleSmall
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold
                     )
                 }
                 Text(
                     text = "+${floatScore.score}",
                     color = Color(0xFFFFEB3B),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Black,
-                    style = MaterialTheme.typography.titleMedium
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Black
                 )
             }
         }

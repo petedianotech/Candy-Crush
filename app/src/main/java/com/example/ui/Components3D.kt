@@ -72,17 +72,21 @@ fun RenderCandy3D(
         label = "candy_squish_y"
     )
 
-    // Gentle physical breathing loop to make candies feel alive
+    // Gentle physical breathing loop to make candies feel alive - only for selected or special candies
     val infiniteTransition = rememberInfiniteTransition(label = "candy_breathe")
-    val breatheScale by infiniteTransition.animateFloat(
-        initialValue = 0.98f,
-        targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "breathe"
-    )
+    val breatheScale by if (selected || specialType != SpecialType.NONE) {
+        infiniteTransition.animateFloat(
+            initialValue = 0.98f,
+            targetValue = 1.02f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = LinearOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "breathe"
+        )
+    } else {
+        remember { mutableStateOf(1f) }
+    }
 
     Canvas(
         modifier = modifier
@@ -775,13 +779,20 @@ fun HDMovingMeshBackground(modifier: Modifier = Modifier) {
         )
 
         // Light translucent grid layout
-        val gridLineCount = 10
+        val gridLineCount = 8
         val cellHeight = size.height / gridLineCount
+        val cellWidth = size.width / gridLineCount
         for (i in 1 until gridLineCount) {
             drawLine(
-                color = Color.White.copy(alpha = 0.015f),
+                color = Color.White.copy(alpha = 0.01f),
                 start = Offset(0f, i * cellHeight),
                 end = Offset(size.width, i * cellHeight),
+                strokeWidth = 1f
+            )
+            drawLine(
+                color = Color.White.copy(alpha = 0.01f),
+                start = Offset(i * cellWidth, 0f),
+                end = Offset(i * cellWidth, size.height),
                 strokeWidth = 1f
             )
         }
