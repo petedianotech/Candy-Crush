@@ -28,16 +28,14 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build Debug and Release APKs
-      run: ./gradlew assembleDebug assembleRelease
+    - name: Build Release APK
+      run: ./gradlew assembleRelease
 
     - name: Capture build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: apks
-        path: |
-          app/build/outputs/apk/debug/*.apk
-          app/build/outputs/apk/release/*.apk
+        name: release-apk
+        path: app/build/outputs/apk/release/*.apk
 
     - name: Create Release
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
